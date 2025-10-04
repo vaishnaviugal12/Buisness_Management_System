@@ -6,6 +6,9 @@ import Suppliers from './Pages/SupplierManagement';
 import CustomerDetails from './Pages/CustmorDetails';
 import SupplierDetails from './Pages/SupplierDetails';
 import ReportAnalysis from './Pages/Report_Analysis'; 
+import BillDetails from './Pages/billDetails';
+import BillDetailsCustmor from './Pages/billDetailsCustmor';
+
 
 function App() {
   return (
@@ -17,12 +20,14 @@ function App() {
 
           {/* Customer Management Routes */}
           <Route path="/customers" element={<Customers />} />
-          <Route path="/customers/:id" element={<CustomerDetails />} />
+         <Route path="/customers/:name" element={<CustomerDetails />} />
+         <Route path="/customers/:name/bill/:invoice" element={<BillDetailsCustmor />} />
 
           {/* Supplier Management Routes */}
           <Route path="/suppliers" element={<Suppliers />} />
-          <Route path="/suppliers/:id" element={<SupplierDetails />} />
-
+        
+          <Route path="/suppliers/:name" element={<SupplierDetails />} />
+          <Route path="/suppliers/:name/bills/:invoice" element={<BillDetails />} />
           {/* Reports */}
           <Route path="/reports" element={<ReportAnalysis />} /> 
 

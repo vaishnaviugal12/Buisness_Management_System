@@ -1,131 +1,146 @@
 import React, { useState } from "react";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
+import { ArrowLeft } from "lucide-react";
 
 const CustomerDetails = () => {
-  const { id } = useParams();
+  const { name } = useParams();
+  const navigate = useNavigate();
 
-  // Dummy data for now (later connect with Supabase)
-  const [purchaseHistory, setPurchaseHistory] = useState([
-    { id: 1, date: "2025-08-01", name: "Purchase A", amount: 1200 },
-    { id: 2, date: "2025-08-05", name: "Purchase B", amount: 850 },
-    { id: 3, date: "2025-08-10", name: "Purchase C", amount: 2100 },
-  ]);
+  const [activeTab, setActiveTab] = useState("active");
 
-  const [paidAmounts, setPaidAmounts] = useState([
-    { id: 1, date: "2025-08-03", name: "Payment A", amount: 600 },
-    { id: 2, date: "2025-08-06", name: "Payment B", amount: 300 },
-  ]);
-
-  // ✅ Totals
-  const totalPurchase = purchaseHistory.reduce((sum, r) => sum + r.amount, 0);
-  const totalPaid = paidAmounts.reduce((sum, r) => sum + r.amount, 0);
-  const totalPending = totalPurchase - totalPaid;
-
-  // ✅ Handlers
-  const handleUpdate = (type, id) => {
-    alert(`Update ${type} entry with ID: ${id}`);
+  // ✅ Static demo data
+  const customerInfo = {
+    name: decodeURIComponent(name),
+    bankAccount: "9876543210",
+    ifsc: "HDFC0001234",
   };
 
-  const handleAdd = (type) => {
-    const newName = prompt(`Enter ${type} name:`);
-    const newAmount = prompt(`Enter ${type} amount:`);
-    if (newName && newAmount) {
-      const newEntry = {
-        id: Date.now(),
-        date: new Date().toISOString().split("T")[0],
-        name: newName,
-        amount: parseFloat(newAmount),
-      };
-      if (type === "purchase") setPurchaseHistory([...purchaseHistory, newEntry]);
-      if (type === "paid") setPaidAmounts([...paidAmounts, newEntry]);
-    }
-  };
+  const invoices = [
+    { invoiceNumber: "INV-201", date: "2025-09-01", amount: 5000, status: "Pending" },
+    { invoiceNumber: "INV-202", date: "2025-09-05", amount: 3000, status: "Paid" },
+    { invoiceNumber: "INV-203", date: "2025-09-15", amount: 4500, status: "Pending" },
+    { invoiceNumber: "INV-204", date: "2025-09-20", amount: 6000, status: "Paid" },
+  ];
 
-  // ✅ Reusable Table Component
-  const renderTable = (title, data, type) => {
-    const total = data.reduce((sum, row) => sum + row.amount, 0);
+  const totalOrders = invoices.length;
+  const totalPaid = invoices
+    .filter((inv) => inv.status === "Paid")
+    .reduce((sum, inv) => sum + inv.amount, 0);
+  const totalPending = invoices
+    .filter((inv) => inv.status === "Pending")
+    .reduce((sum, inv) => sum + inv.amount, 0);
 
-    return (
-      <div className="bg-white shadow-lg rounded-xl p-6 mb-6 max-w-4xl mx-auto">
-        <h2 className="text-lg font-semibold mb-3">{title}</h2>
-
-        <div className="overflow-x-auto">
-          <table className="w-full border text-sm">
-            <thead>
-              <tr className="bg-gray-200 text-left">
-                <th className="border px-4 py-2">Date</th>
-                <th className="border px-4 py-2">Name</th>
-                <th className="border px-4 py-2">Amount</th>
-                <th className="border px-4 py-2">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50">
-                  <td className="border px-4 py-2">{row.date}</td>
-                  <td className="border px-4 py-2">{row.name}</td>
-                  <td className="border px-4 py-2">₹{row.amount}</td>
-                  <td className="border px-4 py-2">
-                    <button
-                      className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                      onClick={() => handleUpdate(type, row.id)}
-                    >
-                      Update
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="bg-gray-100 font-semibold">
-                <td className="border px-4 py-2" colSpan="2">
-                  Total
-                </td>
-                <td className="border px-4 py-2">₹{total}</td>
-                <td className="border px-4 py-2"></td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-
-        {/* ✅ Add New Entry Button at Bottom */}
-        <div className="flex justify-end mt-4">
-          <button
-            onClick={() => handleAdd(type)}
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-          >
-            + Add New {title}
-          </button>
-        </div>
-      </div>
-    );
-  };
+  const filteredInvoices =
+    activeTab === "active"
+      ? invoices.filter((inv) => inv.status === "Pending")
+      : invoices.filter((inv) => inv.status === "Paid");
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-50 to-blue-100 p-8">
-      <h1 className="text-2xl font-bold text-center mb-8">
-        Customer Details - {id}
-      </h1>
+    <div className="min-h-screen bg-gradient-to-r from-blue-50 to-blue-100 p-6">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center text-blue-700 mb-4 hover:underline"
+      >
+        <ArrowLeft className="w-5 h-5 mr-1" /> Back
+      </button>
 
-      {/* ✅ Top Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-4xl mx-auto">
-        <div className="bg-white p-6 shadow rounded-lg text-center">
-          <h3 className="text-gray-600">Total Purchase</h3>
-          <p className="text-xl font-bold text-blue-600">₹{totalPurchase}</p>
+      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-xl p-6">
+        {/* Customer Info */}
+        <h1 className="text-2xl font-bold text-blue-800 mb-2">
+          {customerInfo.name}
+        </h1>
+        <p className="text-gray-700 mb-4">
+          Bank Account: <span className="font-semibold">{customerInfo.bankAccount}</span> | IFSC:{" "}
+          <span className="font-semibold">{customerInfo.ifsc}</span>
+        </p>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-blue-50 p-4 rounded text-center">
+            <p className="text-gray-600">Total Orders</p>
+            <p className="text-2xl font-bold text-blue-700">{totalOrders}</p>
+          </div>
+          <div className="bg-green-50 p-4 rounded text-center">
+            <p className="text-gray-600">Total Paid</p>
+            <p className="text-2xl font-bold text-green-700">₹{totalPaid}</p>
+          </div>
+          <div className="bg-red-50 p-4 rounded text-center">
+            <p className="text-gray-600">Total Pending</p>
+            <p className="text-2xl font-bold text-red-700">₹{totalPending}</p>
+          </div>
         </div>
-        <div className="bg-white p-6 shadow rounded-lg text-center">
-          <h3 className="text-gray-600">Total Paid</h3>
-          <p className="text-xl font-bold text-green-600">₹{totalPaid}</p>
+
+        {/* Active / Inactive Toggle */}
+        <div className="flex justify-center mb-6">
+          <button
+            className={`px-6 py-2 rounded-l-lg border ${
+              activeTab === "active"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+            onClick={() => setActiveTab("active")}
+          >
+            Active (Pending)
+          </button>
+          <button
+            className={`px-6 py-2 rounded-r-lg border ${
+              activeTab === "inactive"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+            onClick={() => setActiveTab("inactive")}
+          >
+            Inactive (Paid)
+          </button>
         </div>
-        <div className="bg-white p-6 shadow rounded-lg text-center">
-          <h3 className="text-gray-600">Total Pending</h3>
-          <p className="text-xl font-bold text-red-600">₹{totalPending}</p>
-        </div>
+
+        {/* Invoices Table */}
+        <table className="w-full border border-gray-200">
+          <thead className="bg-blue-600 text-white">
+            <tr>
+              <th className="py-2 px-4 text-left">Invoice</th>
+              <th className="py-2 px-4 text-left">Date</th>
+              <th className="py-2 px-4 text-left">Amount</th>
+              <th className="py-2 px-4 text-left">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredInvoices.length > 0 ? (
+              filteredInvoices.map((inv) => (
+                <tr
+                  key={inv.invoiceNumber}
+                  className="border-b hover:bg-blue-50 cursor-pointer"
+                  onClick={() =>
+                    navigate(
+                      `/customers/${encodeURIComponent(
+                        customerInfo.name
+                      )}/bill/${inv.invoiceNumber}`
+                    )
+                  }
+                >
+                  <td className="py-2 px-4">{inv.invoiceNumber}</td>
+                  <td className="py-2 px-4">{inv.date}</td>
+                  <td className="py-2 px-4">₹{inv.amount}</td>
+                  <td
+                    className={`py-2 px-4 font-semibold ${
+                      inv.status === "Pending" ? "text-red-600" : "text-green-600"
+                    }`}
+                  >
+                    {inv.status}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="4" className="text-center py-3 text-gray-500">
+                  No {activeTab === "active" ? "pending" : "paid"} bills found
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
-
-      {/* ✅ Detailed Tables */}
-      {renderTable("Purchase History", purchaseHistory, "purchase")}
-      {renderTable("Paid Amounts", paidAmounts, "paid")}
     </div>
   );
 };
